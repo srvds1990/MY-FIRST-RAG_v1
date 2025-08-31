@@ -64,7 +64,7 @@ def get_vectorstore(pdf_files, embeddings_model):
             all_docs.extend(docs)
 
         # Split the combined document into manageable chunks
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200)
         split_docs = text_splitter.split_documents(all_docs)
 
         # Create a vector store from the document chunks
@@ -100,8 +100,9 @@ def create_rag_chain(vectorstore, llm_model):
     # Define the prompt template for the final answer
     prompt_template = ChatPromptTemplate.from_template(
         """
-        Answer the following question based only on the provided context.
-        If the answer is not in the context, just say that you don't have enough information.
+        Provide a comprehensive answer to the following question by synthesizing information
+        from the provided context. If the context does not contain enough information to
+        answer the question, please state that you do not have enough information.
 
         <context>
         {context}
