@@ -21,23 +21,39 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 
 # --- Setup and Initialization ---
 
-load_dotenv()
-# Get the OpenAI API key from the environment
-openai_api_key = os.getenv("OPEN_AI_API_KEY")
-# Get the LangSmith tracing configuration
-langchain_tracing_v2 = os.getenv("LANGCHAIN_TRACING_V2")
-langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-langchain_project = os.getenv("LANGCHAIN_PROJECT")
+import os
+import streamlit as st
+
+# Try loading from Streamlit Cloud secrets first
+try:
+    openai_api_key = st.secrets["OPEN_AI_API_KEY"]
+    langchain_tracing_v2 = st.secrets.get("LANGCHAIN_TRACING_V2")
+    langchain_api_key = st.secrets.get("LANGCHAIN_API_KEY")
+    langchain_project = st.secrets.get("LANGCHAIN_PROJECT")
+except Exception:
+    # Fallback: load from local .env
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    openai_api_key = os.getenv("OPEN_AI_API_KEY")
+    langchain_tracing_v2 = os.getenv("LANGCHAIN_TRACING_V2")
+    langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
+    langchain_project = os.getenv("LANGCHAIN_PROJECT")
 
 # Initialize LLM and Embeddings, storing them in session_state to prevent re-initialization
 if "llm" not in st.session_state:
     if not openai_api_key:
-        st.error("OpenAI API key is not found. Please add it to a `.env` file.")
+        st.error("OpenAI API key is not found. Please add it to `.env` (local) or Streamlit secrets (cloud).")
     else:
-        st.session_state.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=openai_api_key)
+        st.session_state.llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            temperature=0,
+            api_key=openai_api_key
+        )
         # Initialize the Hugging Face Embeddings model and store in session state
-        st.session_state.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
+        st.session_state.embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
 # --- Document Processing and Vector Store Creation ---
 
